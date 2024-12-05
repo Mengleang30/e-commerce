@@ -1,84 +1,116 @@
 import { defineStore } from "pinia";
-import axios from 'axios';
-
-
-export const useProductStore = defineStore('product', {
-    state: () => ({
-        groups: [],
-        promotions: [],
-        categories: [],
-        products: [],
-    }),
-    getters: {
-        getCategoriesByGroup(groupName) {
-            return (groupName) => this.categories.find((category) => category.group === groupName)
-       },
-       getProductsByGroup(groupName) {
-            return (groupName) => this.products.find((product) => product.group === groupName)
-       },
-       getProductsByCategory(categoryId) {
-            return (categoryId) => this.products.find((product) => product.categoryId === categoryId)
-       },
-       getPopularProducts() {
-            const countPopular = 20;
-            console.log("Getting Popular")
-            const popular = () => this.products.find((product) => product.countSold > countPopular)
-            console.log(popular)
-            return popular
-       },
-  
+import axios from "axios";
+export const useProductStore = defineStore("product", {
+  state: () => ({
+    groups: [],
+    promotions: [],
+    categories: [],
+    products: [],
+    currProductGroup: "All",
+  }),
+  getters: {
+    /**
+     * List all categories by group name
+     * @param {string} groupName
+     * @returns {Array} List of categories
+     */
+    getCategoriesByGroup: (state) => {
+      return (groupName) => {
+        return state.categories.filter(
+          (category) => category.group === groupName
+        );
+      };
     },
-    actions: {
-        async fetchCategories(){
-            try {
-                const response  = await axios.get(' http://localhost:3000/api/categories');
-                this.categories = response.data;     
-            } catch (error) {
-                console.error('Error fetching categories', error);
-                this.categories = [];
-            }
-        },
-        async fetchPromotions(){
-            try {
-                const response = await axios.get('http://localhost:3000/api/promotions');
-                this.promotions = response.data;
-            } catch (error) {
-                console.error("Error fetching promotion",error);
-                this.promotions = [];
-            }
 
-        },
-        async intializeStore(){
-            try {
-                await Promise.all([
-                    this.fetchCategories(),
-                    this.fetchPromotions()
-                ]);
-            } catch (error) {
-                console.error('Error during data initialization',error);
-            }
-        },
-
-        async fetchGroups(){
-            try{
-                const response = await axios.get("http://localhost:3000/api/groups");
-                this.groups = response.data;
-            }
-            catch{
-                console.error("Error fetching groups", error);
-                this.groups = [];
-            }
-        },
-        
-        async fetchProduct(){
-            try{
-                const response = await axios.get("http://localhost:3000/api/products");
-                this.products = response.data;
-            }
-            catch{
-                console.error("Error fetching groups", error);
-               
-            }
-        }
+    /**
+     * List all products by group name
+     * @param {string} groupName
+     * @returns {Array} List of products
+     */
+    getProductsByGroup: (state) => {
+      return (groupName) => {
+        return state.products.filter((product) => product.group === groupName);
+      };
     },
+
+    /**
+     * List all products by a given categoryId
+     * @param {number} categoryId
+     * @returns {Array} List of products
+     */
+    getProductsByCategory: (state) => {
+      return (categoryId) => {
+        // Filter products by the provided categoryId
+        return state.products.filter(
+          (product) => product.categoryId === categoryId
+        );
+      };
+    },
+
+    /**
+     * List all popular products
+     * A product with countSold > 10 is considered popular
+     * @returns {Array} List of popular products
+     */
+    getPopularProducts: (state) => {
+      // Log the countSold value of each product for debugging
+      state.products.forEach((product) => {
+        console.log(product.countSold); // Debugging log
+      });
+
+      // Filter and return products with countSold greater than 10
+      return state.products.filter((product) => product.countSold > 10);
+    },
+  },
+
+  actions: {
+    fetchCategory() {
+      axios
+        .get("http://localhost:3000/api/categories")
+        .then((response) => {
+          console.log(response.data); // Access the data
+
+          this.categories = response.data;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    },
+    fetchPromotion() {
+      axios
+        .get("http://localhost:3000/api/promotions")
+        .then((response) => {
+          console.log(response.data); // Access the data
+
+          this.promotions = response.data;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    },
+    fetchGroup() {
+      axios
+        .get("http://localhost:3000/api/groups")
+        .then((response) => {
+          console.log(response.data); // Access the data
+
+          this.groups = response.data;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    },
+    fetchProduct() {
+      axios
+        .get("http://localhost:3000/api/products")
+        .then((response) => {
+          console.log(response.data); // Access the data
+
+          this.products = response.data;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    },
+  },
 });
